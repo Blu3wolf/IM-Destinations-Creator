@@ -6,6 +6,15 @@
         xmlns:local="clr-namespace:IM_Destinations_Creator"
         mc:Ignorable="d"
         Title="IM Destinations Tool" Height="450" Width="800">
+    <Window.Resources>
+        <DataTemplate x:Key="YardListBoxTemplate">
+            <WrapPanel>
+                <TextBlock Text="{Binding YardID}" />
+                <TextBlock Text=" - " />
+                <TextBlock Text="{Binding YardName}" />
+            </WrapPanel>
+        </DataTemplate>
+    </Window.Resources>
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
@@ -20,18 +29,18 @@
         <StackPanel Orientation="Horizontal">
             <DockPanel>
                 <Label Content="Source Yard" Margin="10,0,10,0" HorizontalContentAlignment="Center" DockPanel.Dock="Top" />
-                <ListBox MinWidth="220" Margin="10,0,10,10" ItemsSource="{Binding SourceYards}" ></ListBox>
+                <ListBox MinWidth="220" Margin="10,0,10,10" ItemsSource="{Binding SourceYards}" ItemTemplate="{StaticResource YardListBoxTemplate}" />
             </DockPanel>
             <DockPanel>
                 <Label Content="Destinations Available" Margin="10,0,10,0" HorizontalContentAlignment="Center" DockPanel.Dock="Top" />
-                <ListBox MinWidth="220" Margin="10,0,10,10" ItemsSource="{Binding PossibleDestYards}"></ListBox>
+                <ListBox MinWidth="220" Margin="10,0,10,10" ItemsSource="{Binding PossibleDestYards}" ItemTemplate="{StaticResource YardListBoxTemplate}" />
             </DockPanel>
             <Label VerticalContentAlignment="Center">
                 <Button MinHeight="35" MinWidth="35" />
             </Label>
             <DockPanel>
                 <Label Content="Destinations Set" Margin="10,0,10,0" HorizontalContentAlignment="Center" DockPanel.Dock="Top" />
-                <ListBox MinWidth="220" Margin="10,0,10,10" ItemsSource="{Binding DestYards}"></ListBox>
+                <ListBox MinWidth="220" Margin="10,0,10,10" ItemsSource="{Binding DestYards}" ItemTemplate="{StaticResource YardListBoxTemplate}" />
             </DockPanel>
         </StackPanel>
     </DockPanel>
