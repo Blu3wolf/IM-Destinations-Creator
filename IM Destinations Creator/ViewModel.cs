@@ -15,8 +15,9 @@ namespace IM_Destinations_Creator
         public ViewModel()
         {
 			// instantiate RelayCommands
-			DisplayTestCommand = new RelayCommand(o => { DisplayTestMessage(); });
-			NewFileCommand = new RelayCommand(o => { NewFile(); });
+			DisplayTestCommand = new RelayCommand(o => DisplayTestMessage());
+			NewFileCommand = new RelayCommand(o => NewFile());
+
 
 			// register RoutedUICommands? Im very unclear on this but it works
 			base.RegisterCommand(
@@ -36,6 +37,11 @@ namespace IM_Destinations_Creator
 
 			base.RegisterCommand(
 				ApplicationCommands.SaveAs,
+				param => true,
+				param => this.NewFile());
+
+			base.RegisterCommand(
+				CustomNewCommand,
 				param => true,
 				param => this.NewFile());
 

@@ -21,6 +21,7 @@
 		<local:CommandSinkBinding Command="ApplicationCommands.Open" />
 		<local:CommandSinkBinding Command="ApplicationCommands.Save" />
 		<local:CommandSinkBinding Command="ApplicationCommands.SaveAs" />
+		<local:CommandSinkBinding Command="local:ViewModel.CustomNewCommand" />
 	</Window.CommandBindings>
 	<DockPanel>
         <Menu DockPanel.Dock="Top">
@@ -31,8 +32,11 @@
                 <MenuItem Command="ApplicationCommands.SaveAs"/>
                 <MenuItem Header="Reload Yards..."/>
             </MenuItem>
-            <MenuItem Header="{Binding BindingTestProperty}" />
-			<MenuItem Header="RelayCommand Test" Command="{Binding DisplayTestCommand}" />
+			<MenuItem Header="{Binding BindingTestProperty}">
+				<MenuItem Header="Custom RelayCommand Test" Command="{Binding DisplayTestCommand}" />
+				<MenuItem Header="RelayCommand Test" Command="ApplicationCommands.Properties" />
+				<MenuItem Header="RoutedUICommand Test" Command="local:ViewModel.CustomNewCommand" />
+			</MenuItem>
 		</Menu>
         <StackPanel Orientation="Horizontal">
             <DockPanel>
