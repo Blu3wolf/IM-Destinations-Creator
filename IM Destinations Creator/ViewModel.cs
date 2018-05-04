@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace IM_Destinations_Creator
 {
@@ -12,20 +13,24 @@ namespace IM_Destinations_Creator
     {
         public ViewModel()
         {
-            // instantiate commands
-            NewFileCommand = new RelayCommand(() => NewFile());
+			// instantiate commands
+			DisplayTestCommand = new RelayCommand(o => { DisplayTestMessage(); });
+			NewFileCommand = new RelayCommand(o => { NewFile(); });
 
-            // lets initialise some data to use
-            SourceYards = new ObservableCollection<SourceYard>();
-            SourceYards.Add(new SourceYard(1001, "Dolores ICTF, CA", new ObservableCollection<Yard>()));
-            SourceYards.Add(new SourceYard(1280, "Jackson High Oak, MS", new ObservableCollection<Yard>()));
-            SourceYards.Add(new SourceYard(1998, "Chicago 63rd St, IL", new ObservableCollection<Yard>()));
-            SourceYards.Add(new SourceYard(1389, "Terminal Island, CA", new ObservableCollection<Yard>()));
-            SourceYards.Add(new SourceYard(1385, "Rutherford, PA", new ObservableCollection<Yard>()));
-            SourceYards.Add(new SourceYard(1911, "Morrisville, PA", new ObservableCollection<Yard>()));
-            SourceYards.Add(new SourceYard(1372, "Houston Englewood, TX", new ObservableCollection<Yard>()));
 
-            BindingTestProperty = "Test Text Here";
+			// lets initialise some data to use
+			SourceYards = new ObservableCollection<SourceYard>
+			{
+				new SourceYard(1001, "Dolores ICTF, CA", new ObservableCollection<Yard>()),
+				new SourceYard(1280, "Jackson High Oak, MS", new ObservableCollection<Yard>()),
+				new SourceYard(1998, "Chicago 63rd St, IL", new ObservableCollection<Yard>()),
+				new SourceYard(1389, "Terminal Island, CA", new ObservableCollection<Yard>()),
+				new SourceYard(1385, "Rutherford, PA", new ObservableCollection<Yard>()),
+				new SourceYard(1911, "Morrisville, PA", new ObservableCollection<Yard>()),
+				new SourceYard(1372, "Houston Englewood, TX", new ObservableCollection<Yard>())
+			};
+
+			BindingTestProperty = "Test Text Here";
             selSourceYard = 0;
 
         }
@@ -74,10 +79,19 @@ namespace IM_Destinations_Creator
         public RelayCommand NewFileCommand
         {
             get;
-            private set;
         }
 
+		public RelayCommand DisplayTestCommand
+		{
+			get;
+		}
+
         // Methods
+
+		private void DisplayTestMessage()
+		{
+			MessageBox.Show("Test Message Here");
+		}
 
         private void LoadYardsFile() // To Do
         {
@@ -90,10 +104,12 @@ namespace IM_Destinations_Creator
 
         private void NewFile() // To Do
         {
-            // unload all current data
-            // overwrite with new default data
+			// unload all current data
+			// overwrite with new default data
 
-            // current default data is a hardcoded short list of yards
+			// current default data is a hardcoded short list of yards
+			// test behavior:
+			DisplayTestMessage();
         }
 
         private void OpenFile() // To Do

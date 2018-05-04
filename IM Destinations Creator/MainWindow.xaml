@@ -6,19 +6,19 @@
         xmlns:local="clr-namespace:IM_Destinations_Creator"
         mc:Ignorable="d"
         Title="IM Destinations Tool" Height="450" Width="800">
-    <Window.Resources>
-        <DataTemplate x:Key="YardListBoxTemplate">
-            <WrapPanel>
-                <TextBlock Text="{Binding YardID}" />
-                <TextBlock Text=" - " />
-                <TextBlock Text="{Binding YardName}" />
-            </WrapPanel>
-        </DataTemplate>
-    </Window.Resources>
-    <Window.CommandBindings>
-        <CommandBinding Command="ApplicationCommands.New" />
-    </Window.CommandBindings>
-    <DockPanel>
+	<Window.Resources>
+		<DataTemplate x:Key="YardListBoxTemplate">
+			<WrapPanel>
+				<TextBlock Text="{Binding YardID}" />
+				<TextBlock Text=" - " />
+				<TextBlock Text="{Binding YardName}" />
+			</WrapPanel>
+		</DataTemplate>
+	</Window.Resources>
+	<Window.CommandBindings>
+		<CommandBinding Command="ApplicationCommands.New" CanExecute="NewFileCommand.CanExecute()" Executed="NewFileCommand.Execute()"/>
+	</Window.CommandBindings>
+	<DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
                 <MenuItem Command="ApplicationCommands.New"/>
@@ -28,7 +28,8 @@
                 <MenuItem Header="Reload Yards..."/>
             </MenuItem>
             <MenuItem Header="{Binding BindingTestProperty}" />
-        </Menu>
+			<MenuItem Command="{Binding DisplayTestCommand}" />
+		</Menu>
         <StackPanel Orientation="Horizontal">
             <DockPanel>
                 <Label Content="Source Yard" Margin="10,0,10,0" HorizontalContentAlignment="Center" DockPanel.Dock="Top" />
