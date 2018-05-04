@@ -6,16 +6,38 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Input;
 
 namespace IM_Destinations_Creator
 {
-    class ViewModel
+    class ViewModel : CommandSink
     {
         public ViewModel()
         {
-			// instantiate commands
+			// instantiate RelayCommands
 			DisplayTestCommand = new RelayCommand(o => { DisplayTestMessage(); });
 			NewFileCommand = new RelayCommand(o => { NewFile(); });
+
+			// register RoutedUICommands? Im very unclear on this but it works
+			base.RegisterCommand(
+				ApplicationCommands.New,
+				param => true,
+				param => this.NewFile());
+
+			base.RegisterCommand(
+				ApplicationCommands.Open,
+				param => true,
+				param => this.NewFile());
+
+			base.RegisterCommand(
+				ApplicationCommands.Save,
+				param => true,
+				param => this.NewFile());
+
+			base.RegisterCommand(
+				ApplicationCommands.SaveAs,
+				param => true,
+				param => this.NewFile());
 
 
 			// lets initialise some data to use
@@ -74,7 +96,9 @@ namespace IM_Destinations_Creator
             get { return SelSourceYard.DestYards; }
         }
 
-        // Commands (Still actually Properties though)
+		// Commands (Still actually Properties though)
+
+		public static readonly RoutedUICommand CustomNewCommand = new RoutedUICommand();
 
         public RelayCommand NewFileCommand
         {

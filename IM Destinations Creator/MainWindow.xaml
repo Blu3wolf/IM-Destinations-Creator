@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:IM_Destinations_Creator"
         mc:Ignorable="d"
+		local:CommandSinkBinding.CommandSink="{Binding}"
         Title="IM Destinations Tool" Height="450" Width="800">
 	<Window.Resources>
 		<DataTemplate x:Key="YardListBoxTemplate">
@@ -16,7 +17,10 @@
 		</DataTemplate>
 	</Window.Resources>
 	<Window.CommandBindings>
-		<CommandBinding Command="ApplicationCommands.New" CanExecute="NewFileCommand.CanExecute()" Executed="NewFileCommand.Execute()"/>
+		<local:CommandSinkBinding Command="ApplicationCommands.New" />
+		<local:CommandSinkBinding Command="ApplicationCommands.Open" />
+		<local:CommandSinkBinding Command="ApplicationCommands.Save" />
+		<local:CommandSinkBinding Command="ApplicationCommands.SaveAs" />
 	</Window.CommandBindings>
 	<DockPanel>
         <Menu DockPanel.Dock="Top">
@@ -28,7 +32,7 @@
                 <MenuItem Header="Reload Yards..."/>
             </MenuItem>
             <MenuItem Header="{Binding BindingTestProperty}" />
-			<MenuItem Command="{Binding DisplayTestCommand}" />
+			<MenuItem Header="RelayCommand Test" Command="{Binding DisplayTestCommand}" />
 		</Menu>
         <StackPanel Orientation="Horizontal">
             <DockPanel>
