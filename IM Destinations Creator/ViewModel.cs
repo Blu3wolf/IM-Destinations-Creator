@@ -12,15 +12,18 @@ namespace IM_Destinations_Creator
     {
         public ViewModel()
         {
+            // instantiate commands
+            NewFileCommand = new RelayCommand(() => NewFile());
+
             // lets initialise some data to use
             SourceYards = new ObservableCollection<SourceYard>();
-            SourceYards.Add(new SourceYard(1001, "Dolores ICTF", new ObservableCollection<Yard>()));
-            SourceYards.Add(new SourceYard(1280, "Jackson High Oak", new ObservableCollection<Yard>()));
-            SourceYards.Add(new SourceYard(1998, "Chicago 63rd St", new ObservableCollection<Yard>()));
-            SourceYards.Add(new SourceYard(1389, "Terminal Island", new ObservableCollection<Yard>()));
-            SourceYards.Add(new SourceYard(1385, "Rutherford", new ObservableCollection<Yard>()));
-            SourceYards.Add(new SourceYard(1911, "Morrisville", new ObservableCollection<Yard>()));
-            SourceYards.Add(new SourceYard(1372, "Houston Englewood", new ObservableCollection<Yard>()));
+            SourceYards.Add(new SourceYard(1001, "Dolores ICTF, CA", new ObservableCollection<Yard>()));
+            SourceYards.Add(new SourceYard(1280, "Jackson High Oak, MS", new ObservableCollection<Yard>()));
+            SourceYards.Add(new SourceYard(1998, "Chicago 63rd St, IL", new ObservableCollection<Yard>()));
+            SourceYards.Add(new SourceYard(1389, "Terminal Island, CA", new ObservableCollection<Yard>()));
+            SourceYards.Add(new SourceYard(1385, "Rutherford, PA", new ObservableCollection<Yard>()));
+            SourceYards.Add(new SourceYard(1911, "Morrisville, PA", new ObservableCollection<Yard>()));
+            SourceYards.Add(new SourceYard(1372, "Houston Englewood, TX", new ObservableCollection<Yard>()));
 
             BindingTestProperty = "Test Text Here";
             selSourceYard = 0;
@@ -64,6 +67,14 @@ namespace IM_Destinations_Creator
         public ObservableCollection<Yard> ActualDestYards
         {
             get { return SelSourceYard.DestYards; }
+        }
+
+        // Commands (Still actually Properties though)
+
+        public RelayCommand NewFileCommand
+        {
+            get;
+            private set;
         }
 
         // Methods
