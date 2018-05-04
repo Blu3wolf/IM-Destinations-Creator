@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using Microsoft.WindowsAPICodePack.Dialogs;
 
 namespace IM_Destinations_Creator
 {
@@ -17,6 +18,7 @@ namespace IM_Destinations_Creator
 			// instantiate RelayCommands
 			DisplayTestCommand = new RelayCommand(o => DisplayTestMessage());
 			NewFileCommand = new RelayCommand(o => NewFile());
+			ToggleCommand = new RelayCommand(o => ToggleValidDest());
 
 
 			// register RoutedUICommands? Im very unclear on this but it works
@@ -28,17 +30,17 @@ namespace IM_Destinations_Creator
 			base.RegisterCommand(
 				ApplicationCommands.Open,
 				param => true,
-				param => this.NewFile());
+				param => this.OpenFile());
 
 			base.RegisterCommand(
 				ApplicationCommands.Save,
 				param => true,
-				param => this.NewFile());
+				param => this.SaveFile());
 
 			base.RegisterCommand(
 				ApplicationCommands.SaveAs,
 				param => true,
-				param => this.NewFile());
+				param => this.SaveAsFile());
 
 			base.RegisterCommand(
 				CustomNewCommand,
@@ -116,6 +118,11 @@ namespace IM_Destinations_Creator
 			get;
 		}
 
+		public RelayCommand ToggleCommand
+		{
+			get;
+		}
+
         // Methods
 
 		private void DisplayTestMessage()
@@ -125,12 +132,13 @@ namespace IM_Destinations_Creator
 
         private void LoadYardsFile() // To Do
         {
-            // load the list of yards as used by FYM, from the FYM install
-            // assume we are in the FYM root directory first, then if we are not display modal dialogue asking for the FYM root directory
+			// load the list of yards as used by FYM, from the FYM install
+			// assume we are in the FYM root directory first, then if we are not display modal dialogue asking for the FYM root directory
 
-            // NOTE: This is not yet implemented
+			// NOTE: This is not yet implemented
+			MessageBox.Show("Pretend I loaded all new yards data just now.");
 
-        }
+		}
 
         private void NewFile() // To Do
         {
@@ -144,7 +152,7 @@ namespace IM_Destinations_Creator
 
         private void OpenFile() // To Do
         {
-            // prompt a save
+            // prompt a save if there is open unsaved data already
             // display modal dialogue asking for the file to load
             // unload all current data
             // read file
@@ -153,26 +161,53 @@ namespace IM_Destinations_Creator
 
         private void SaveFile() // To Do
         {
-            // does the save file exist? If so, write the current data to file
-            // if not, SaveAsFile();
+			// does the save file exist? If so, write the current data to file
+			// if not, SaveAsFile();
+
+			if (saveLocation != null)
+			{
+				// write to saveLocation
+				MessageBox.Show("Pretend I saved just now.");
+			}
+			else
+			{
+				SaveAsFile();
+			}
         }
 
-        private void SaveAsFile() // To Do
-        {
-            // display a modal dialogue asking where to save the file
-            // write the current data to file
-            // update the location of the save file
-        }
+		private void SaveAsFile() // To Do
+		{
+			// display a modal dialogue asking where to save the file
+			// write the current data to file
+			// update the location of the save file
+			string initDir = Path.GetDirectoryName(saveLocation);
+			
+			CommonSaveFileDialog fileDialog = new CommonSaveFileDialog()
+			{
+				Title = "Save As...",
+				InitialDirectory = initDir,
+
+			};
+			if (!Directory.Exists(initDir))
+			{
+				fileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+			}
+
+			
+
+			if (fileDialog.ShowDialog() == CommonFileDialogResult.Ok && !File.Exists(fileDialog.FileName))
+			{
+				// write to fileDialog.FileName
+				MessageBox.Show("Pretend I saved just now.");
+				saveLocation = fileDialog.FileName;
+			}
+		}
 
         private void SelectOrigin() // To Do
         {
             // set the currently selected origin yard
             // update the list of available and currently set destinations
-        }
 
-        private void SelectDest() // To Do
-        {
-            // set the currently selected destination yard(s)
         }
 
         private void ToggleValidDest() // To Do
