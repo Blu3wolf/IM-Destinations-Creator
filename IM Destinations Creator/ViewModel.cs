@@ -22,6 +22,8 @@ namespace IM_Destinations_Creator
             NewFileCommand = new RelayCommand(obj => NewFile());
 			ToggleCommand = new RelayCommand(obj => ToggleValidDest((IList<Yard>)obj));
             LoadYardsFileCommand = new RelayCommand(obj => LoadYardsFile());
+            AddYardCommand = new RelayCommand(o => AddYard());
+            AddThisYardCommand = new RelayCommand(obj => AddThisYard((Yard)obj));
 
             IsValidDestCommand = new RelayCommand(o => IsValidDest(CastToIList(o)), p => true);
             IsNotValidDestCommand = new RelayCommand(o => IsNotValidDest(CastToIList(o)), p => true);
@@ -128,6 +130,10 @@ namespace IM_Destinations_Creator
 
         public RelayCommand LoadYardsFileCommand { get; }
 
+        public RelayCommand AddYardCommand { get; }
+
+        public RelayCommand AddThisYardCommand { get; }
+
 		public RelayCommand ToggleCommand { get; }
 
         public RelayCommand IsValidDestCommand { get; }
@@ -173,6 +179,21 @@ namespace IM_Destinations_Creator
             };
 
             NewFile();
+        }
+
+        private void AddYard()
+        {
+            AddNewYard nywindow = new AddNewYard();
+            nywindow.ShowDialog();
+            if (nywindow.NewYard != null)
+            {
+                AddThisYard(nywindow.NewYard);
+            }
+        }
+
+        private void AddThisYard(Yard yard)
+        {
+            SourceYards.Add(new SourceYard(yard.YardID, yard.YardName, new ObservableCollection<Yard>()));
         }
 
         private void NewFile()
