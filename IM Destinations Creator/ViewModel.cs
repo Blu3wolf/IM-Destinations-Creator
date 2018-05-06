@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using Microsoft.WindowsAPICodePack.Dialogs;
+using FYMFileZip;
 
 namespace IM_Destinations_Creator
 {
@@ -163,8 +164,11 @@ namespace IM_Destinations_Creator
 
         private void LoadYardsFile() // To Do
         {
-			// load the list of yards as used by FYM, from the FYM install
-			// assume we are in the FYM root directory first, then if we are not display modal dialogue asking for the FYM root directory
+            // load the list of yards as used by FYM, from the FYM install
+            // assume we are in the FYM root directory first, then if we are not display modal dialogue asking for the FYM root directory
+
+            string literal = "foo";
+            FYMZip.UnZipFiletoString(literal, ref literal);
 
 			// NOTE: This is not yet implemented
 			MessageBox.Show("Pretend I loaded all new yards data just now.");
@@ -275,6 +279,8 @@ namespace IM_Destinations_Creator
                 unsavedChanges = false;
             }
         }
+
+
 
         private void WriteFile(string[] lines, string path)
         {
