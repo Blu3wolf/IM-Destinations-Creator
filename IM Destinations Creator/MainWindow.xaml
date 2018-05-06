@@ -41,7 +41,7 @@
         <StackPanel Orientation="Horizontal">
             <DockPanel>
                 <Label Content="Source Yard" Margin="10,0,10,0" HorizontalContentAlignment="Center" DockPanel.Dock="Top" />
-                <ListBox MinWidth="220" Margin="10,0,10,10" ItemsSource="{Binding PossibleDestYards}" ItemTemplate="{StaticResource YardListBoxTemplate}" />
+                <ListBox MinWidth="220" Margin="10,0,10,10" ItemsSource="{Binding SourceYards}" SelectedItem="{Binding Path=SelSourceYard, Mode=OneWayToSource}" ItemTemplate="{StaticResource YardListBoxTemplate}" />
             </DockPanel>
             <DockPanel>
                 <Label Content="Destinations Available" Margin="10,0,10,0" HorizontalContentAlignment="Center" DockPanel.Dock="Top" />

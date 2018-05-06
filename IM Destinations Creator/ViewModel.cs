@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -11,7 +13,7 @@ using Microsoft.WindowsAPICodePack.Dialogs;
 
 namespace IM_Destinations_Creator
 {
-    class ViewModel : CommandSink
+    class ViewModel : CommandSink, INotifyPropertyChanged
     {
         public ViewModel()
         {
@@ -21,7 +23,7 @@ namespace IM_Destinations_Creator
 			ToggleCommand = new RelayCommand(obj => ToggleValidDest((IList<Yard>)obj));
 
             IsValidDestCommand = new RelayCommand(o => IsValidDest(CastToIList(o)), p => true);
-            IsNotValidDestCommand = new RelayCommand(o => IsNotValidDest((IList<Yard>)o), p => true);
+            IsNotValidDestCommand = new RelayCommand(o => IsNotValidDest(CastToIList(o)), p => true);
 
 
             // register RoutedUICommands? Im very unclear on this but it works
@@ -83,10 +85,33 @@ namespace IM_Destinations_Creator
         public SourceYard SelSourceYard // do I need this?
         {
             get { return SourceYards[selSourceYard]; }
-            set { /* still working on this part */ }
+            set
+            {
+                if (SourceYards.Contains(value))
+                {
+                    selSourceYard = SourceYards.IndexOf(value);
+                    NotifyPropertyChanged();
+                    MessageBox.Show("Selected Yard just changed");
+                }
+            }
         }
 
-        public ObservableCollection<Yard> PossibleDestYards { get; }
+        public ObservableCollection<Yard> PossibleDestYards
+        {
+            get
+            {
+                ObservableCollection<Yard> yards = new ObservableCollection<Yard>(SourceYards);
+                if (ActualDestYards.Count == 0)
+                {
+                    return yards;
+                }
+                foreach (Yard o in ActualDestYards)
+                {
+                    yards.Remove(o);
+                }
+                return yards;
+            }
+        }
 
         public ObservableCollection<Yard> ActualDestYards
         {
@@ -96,6 +121,8 @@ namespace IM_Destinations_Creator
 		// Commands (Still actually Properties though)
 
 		public static readonly RoutedUICommand CustomNewCommand = new RoutedUICommand();
+
+        public event PropertyChangedEventHandler PropertyChanged;
 
         public RelayCommand NewFileCommand { get; }
 
@@ -108,6 +135,11 @@ namespace IM_Destinations_Creator
         public RelayCommand IsNotValidDestCommand { get; }
 
         // Methods
+
+        private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
 
         private IList<Yard> CastToIList(Object param)
         {
@@ -199,8 +231,7 @@ namespace IM_Destinations_Creator
             // make the selected Yards valid destination yards
             foreach (Yard yard in selYards)
             {
-                ActualDestYards.Add(yard);
-                PossibleDestYards.Remove(yard);
+                SelSourceYard.DestYards.Add(yard);
             }
         }
 
@@ -209,8 +240,7 @@ namespace IM_Destinations_Creator
             // make the selected Yards not valid destination yards
             foreach (Yard yard in selYards)
             {
-                ActualDestYards.Remove(yard);
-                PossibleDestYards.Add(yard);
+                SelSourceYard.DestYards.Remove(yard);
             }
         }
 
