@@ -3,3 +3,4 @@ IM-Destinations-Creator is a tool for building and editing IM Destinations files
 
 ## Building IM-Destinations-Creator
 You will need WindowsAPICodePack, available on NuGet. IM-Destinations-Creator is built on VS2017 Community Edition.
+You will also need FYMFileZip.dll which is included with FYM. 
