@@ -222,14 +222,44 @@ namespace IM_Destinations_Creator
         private void OpenFile() // To Do
         {
             // prompt a save if there is open unsaved data already
-            // display modal dialogue asking for the file to load
-            // unload all current data
-            // read file
-            // populate new data from file contents
 
             if (unsavedChanges)
             {
-                MessageBox.Show("There are unsaved changes. Do you wish to continue?", "Unsaved Changes", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                var result = MessageBox.Show("There are unsaved changes. Do you wish to continue?", "Unsaved Changes", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (result == MessageBoxResult.No)
+                {
+                    return;
+                }
+            }
+
+            // display modal dialogue asking for the file to load
+            
+            string initDir = Path.GetDirectoryName(saveLocation);
+
+            CommonOpenFileDialog fileDialog = new CommonOpenFileDialog()
+            {
+                Title = "Open File",
+                InitialDirectory = initDir,
+                DefaultExtension = "imd"
+            };
+
+            fileDialog.Filters.Add(new CommonFileDialogFilter("IM Destination File", ".imd"));
+            fileDialog.Filters.Add(new CommonFileDialogFilter("Text File", ".txt"));
+
+            if (!Directory.Exists(initDir))
+            {
+                fileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            }
+
+            if (fileDialog.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                saveLocation = fileDialog.FileName;
+                
+                // unload current data
+                // read from file
+                // set up ViewModel properties from file data
+
+                unsavedChanges = false;
             }
         }
 
