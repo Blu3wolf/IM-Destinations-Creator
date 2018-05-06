@@ -17,12 +17,15 @@ namespace IM_Destinations_Creator
         {
 			// instantiate RelayCommands
 			DisplayTestCommand = new RelayCommand(o => DisplayTestMessage());
-			NewFileCommand = new RelayCommand(o => NewFile());
-			ToggleCommand = new RelayCommand(o => ToggleValidDest());
+            NewFileCommand = new RelayCommand(obj => NewFile());
+			ToggleCommand = new RelayCommand(obj => ToggleValidDest((IList<Yard>)obj));
+
+            IsValidDestCommand = new RelayCommand(o => IsValidDest(CastToIList(o)), p => true);
+            IsNotValidDestCommand = new RelayCommand(o => IsNotValidDest((IList<Yard>)o), p => true);
 
 
-			// register RoutedUICommands? Im very unclear on this but it works
-			base.RegisterCommand(
+            // register RoutedUICommands? Im very unclear on this but it works
+            base.RegisterCommand(
 				ApplicationCommands.New,
 				param => true,
 				param => this.NewFile());
@@ -77,27 +80,13 @@ namespace IM_Destinations_Creator
 
         public ObservableCollection<SourceYard> SourceYards { get; }
 
-        private SourceYard SelSourceYard // do I need this?
+        public SourceYard SelSourceYard // do I need this?
         {
             get { return SourceYards[selSourceYard]; }
+            set { /* still working on this part */ }
         }
 
-        public ObservableCollection<Yard> PossibleDestYards
-        {
-            get
-            {
-                ObservableCollection<Yard> yards = new ObservableCollection<Yard>(SourceYards);
-                if (ActualDestYards.Count == 0)
-                {
-                    return yards;
-                }
-                foreach (Yard o in ActualDestYards)
-                {
-                    yards.Remove(o);
-                }
-                return yards;
-            }
-        }
+        public ObservableCollection<Yard> PossibleDestYards { get; }
 
         public ObservableCollection<Yard> ActualDestYards
         {
@@ -108,22 +97,24 @@ namespace IM_Destinations_Creator
 
 		public static readonly RoutedUICommand CustomNewCommand = new RoutedUICommand();
 
-        public RelayCommand NewFileCommand
-        {
-            get;
-        }
+        public RelayCommand NewFileCommand { get; }
 
-		public RelayCommand DisplayTestCommand
-		{
-			get;
-		}
+		public RelayCommand DisplayTestCommand { get; }
 
-		public RelayCommand ToggleCommand
-		{
-			get;
-		}
+		public RelayCommand ToggleCommand { get; }
+
+        public RelayCommand IsValidDestCommand { get; }
+
+        public RelayCommand IsNotValidDestCommand { get; }
 
         // Methods
+
+        private IList<Yard> CastToIList(Object param)
+        {
+            System.Collections.IList items = (System.Collections.IList)param;
+            IList<Yard> collection = items.Cast<Yard>().ToList<Yard>();
+            return collection;
+        }
 
 		private void DisplayTestMessage()
 		{
@@ -203,16 +194,43 @@ namespace IM_Destinations_Creator
 			}
 		}
 
-        private void SelectOrigin() // To Do
+        private void IsValidDest(IList<Yard> selYards)
         {
-            // set the currently selected origin yard
-            // update the list of available and currently set destinations
-
+            // make the selected Yards valid destination yards
+            foreach (Yard yard in selYards)
+            {
+                ActualDestYards.Add(yard);
+                PossibleDestYards.Remove(yard);
+            }
         }
 
-        private void ToggleValidDest() // To Do
+        private void IsNotValidDest(IList<Yard> selYards)
         {
+            // make the selected Yards not valid destination yards
+            foreach (Yard yard in selYards)
+            {
+                ActualDestYards.Remove(yard);
+                PossibleDestYards.Add(yard);
+            }
+        }
 
+        private void ToggleValidDest(IList<Yard> selYards) // To Do
+        {
+            // for every selected yard, if it is a valid destination yard, make it invalid, otherwise make it valid
+            // this would be easy to implement if I just knew how to have one collection of selected yards rather than one collection per listbox
+            foreach(Yard yard in selYards)
+            {
+                if (ActualDestYards.Contains(yard))
+                {
+                    ActualDestYards.Remove(yard);
+                    PossibleDestYards.Add(yard);
+                }
+                else
+                {
+                    ActualDestYards.Add(yard);
+                    PossibleDestYards.Remove(yard);
+                }
+            }
         }
     }
 }

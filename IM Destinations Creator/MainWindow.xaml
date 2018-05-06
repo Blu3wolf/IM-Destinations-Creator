@@ -41,7 +41,7 @@
         <StackPanel Orientation="Horizontal">
             <DockPanel>
                 <Label Content="Source Yard" Margin="10,0,10,0" HorizontalContentAlignment="Center" DockPanel.Dock="Top" />
-                <ListBox MinWidth="220" Margin="10,0,10,10" ItemsSource="{Binding SourceYards}" ItemTemplate="{StaticResource YardListBoxTemplate}" />
+                <ListBox MinWidth="220" Margin="10,0,10,10" ItemsSource="{Binding PossibleDestYards}" ItemTemplate="{StaticResource YardListBoxTemplate}" />
             </DockPanel>
             <DockPanel>
                 <Label Content="Destinations Available" Margin="10,0,10,0" HorizontalContentAlignment="Center" DockPanel.Dock="Top" />
@@ -50,8 +50,8 @@
 			<DockPanel>
 				<Label VerticalContentAlignment="Center">
 					<DockPanel MinHeight="80" LastChildFill="False">
-						<Button Content="→" DockPanel.Dock="Top" MinHeight="35" MinWidth="35" Command="{Binding ToggleCommand}" CommandParameter="{Binding ElementName=LBPossibleDestYards, Path=SelectedItems}" FontSize="22"/>
-						<Button Content="←" DockPanel.Dock="Bottom" MinHeight="35" MinWidth="35" Command="{Binding ToggleCommand}" CommandParameter="{Binding ElementName=LBDestYards, Path=SelectedItems}" FontSize="22"/>
+						<Button Content="→" DockPanel.Dock="Top" MinHeight="35" MinWidth="35" Command="{Binding IsValidDestCommand}" CommandParameter="{Binding ElementName=LBPossibleDestYards, Path=SelectedItems}" FontSize="22"/>
+						<Button Content="←" DockPanel.Dock="Bottom" MinHeight="35" MinWidth="35" Command="{Binding IsNotValidDestCommand}" CommandParameter="{Binding ElementName=LBDestYards, Path=SelectedItems}" FontSize="22"/>
 					</DockPanel>
 					
 				</Label>
@@ -59,8 +59,10 @@
 				
 			</DockPanel>
 			<DockPanel>
-                <Label Content="Destinations Set" Margin="10,0,10,0" HorizontalContentAlignment="Center" DockPanel.Dock="Top" />
-                <ListBox Name="LBDestYards" MinWidth="220" Margin="10,0,10,10" ItemsSource="{Binding DestYards}" SelectionMode="Extended" ItemTemplate="{StaticResource YardListBoxTemplate}" />
+                <DockPanel DockPanel.Dock="Top" >
+                    <Label Content="Destinations Set" Margin="10,0,10,0" HorizontalContentAlignment="Center" />
+                </DockPanel>
+                <ListBox Name="LBDestYards" MinWidth="220" Margin="10,0,10,10" ItemsSource="{Binding ActualDestYards}" SelectionMode="Extended" ItemTemplate="{StaticResource YardListBoxTemplate}" />
             </DockPanel>
         </StackPanel>
     </DockPanel>
