@@ -21,6 +21,7 @@ namespace IM_Destinations_Creator
 			DisplayTestCommand = new RelayCommand(o => DisplayTestMessage());
             NewFileCommand = new RelayCommand(obj => NewFile());
 			ToggleCommand = new RelayCommand(obj => ToggleValidDest((IList<Yard>)obj));
+            LoadYardsFileCommand = new RelayCommand(obj => LoadYardsFile());
 
             IsValidDestCommand = new RelayCommand(o => IsValidDest(CastToIList(o)), p => true);
             IsNotValidDestCommand = new RelayCommand(o => IsNotValidDest(CastToIList(o)), p => true);
@@ -53,20 +54,8 @@ namespace IM_Destinations_Creator
 				param => this.NewFile());
 
 
-			// lets initialise some data to use
-			SourceYards = new ObservableCollection<SourceYard>
-			{
-				new SourceYard(1001, "Dolores ICTF, CA", new ObservableCollection<Yard>()),
-				new SourceYard(1280, "Jackson High Oak, MS", new ObservableCollection<Yard>()),
-				new SourceYard(1998, "Chicago 63rd St, IL", new ObservableCollection<Yard>()),
-				new SourceYard(1389, "Terminal Island, CA", new ObservableCollection<Yard>()),
-				new SourceYard(1385, "Rutherford, PA", new ObservableCollection<Yard>()),
-				new SourceYard(1911, "Morrisville, PA", new ObservableCollection<Yard>()),
-				new SourceYard(1372, "Houston Englewood, TX", new ObservableCollection<Yard>())
-			};
-
-			BindingTestProperty = "Test Text Here";
-            selSourceYard = 0;
+            // lets initialise some data to use
+            LoadYardsFile();
 
         }
 
@@ -76,11 +65,24 @@ namespace IM_Destinations_Creator
 
         private int selSourceYard;
 
+        private ObservableCollection<SourceYard> sourceYards;
+
+        private List<Yard> DefaultYards;
+
         // Properties
 
         public string BindingTestProperty { get; set; }
 
-        public ObservableCollection<SourceYard> SourceYards { get; }
+        public ObservableCollection<SourceYard> SourceYards
+        {
+            get { return sourceYards; }
+            private set
+            {
+                // still working on this part
+                sourceYards = value;
+                NotifyPropertyChanged();
+            }
+        }
 
         public SourceYard SelSourceYard // do I need this?
         {
@@ -101,6 +103,7 @@ namespace IM_Destinations_Creator
             get
             {
                 ObservableCollection<Yard> yards = new ObservableCollection<Yard>(SourceYards);
+                yards.Remove(SelSourceYard);
                 if (SelSourceYard.DestYards.Count == 0)
                 {
                     return yards;
@@ -122,6 +125,8 @@ namespace IM_Destinations_Creator
         public RelayCommand NewFileCommand { get; }
 
 		public RelayCommand DisplayTestCommand { get; }
+
+        public RelayCommand LoadYardsFileCommand { get; }
 
 		public RelayCommand ToggleCommand { get; }
 
@@ -156,16 +161,37 @@ namespace IM_Destinations_Creator
 			// NOTE: This is not yet implemented
 			MessageBox.Show("Pretend I loaded all new yards data just now.");
 
-		}
+            DefaultYards = new List<Yard>()
+            {
+                new Yard(1001, "Dolores ICTF, CA"),
+                new Yard(1280, "Jackson High Oak, MS"),
+                new Yard(1998, "Chicago 63rd St, IL"),
+                new Yard(1389, "Terminal Island, CA"),
+                new Yard(1385, "Rutherford, PA"),
+                new Yard(1911, "Morrisville, PA"),
+                new Yard(1372, "Houston Englewood, TX")
+            };
 
-        private void NewFile() // To Do
+            NewFile();
+        }
+
+        private void NewFile()
         {
-			// unload all current data
-			// overwrite with new default data
+            // unload all current data
+            // overwrite with new default data
 
-			// current default data is a hardcoded short list of yards
-			// test behavior:
-			DisplayTestMessage();
+            saveLocation = null;
+            SourceYards = new ObservableCollection<SourceYard>();
+            int i = 0;
+            foreach (Yard yard in DefaultYards)
+            {
+                SourceYard syard = new SourceYard(yard.YardID, yard.YardName, new ObservableCollection<Yard>());
+                SourceYards.Add(syard);
+                // cycling through selected yard updates the display
+                SelSourceYard = SourceYards[i];
+                i++;
+            }
+            SelSourceYard = SourceYards[0];
         }
 
         private void OpenFile() // To Do
@@ -177,6 +203,44 @@ namespace IM_Destinations_Creator
             // populate new data from file contents
         }
 
+        private void WriteFile(string[] lines, string path)
+        {
+            using (System.IO.StreamWriter file =
+            new System.IO.StreamWriter(path))
+            {
+                foreach (string line in lines)
+                {
+                    file.WriteLine(line);
+                }
+            }
+        }
+
+        private string[] Save()
+        {
+            List<SourceYard> SaveYards = new List<SourceYard>();
+            foreach (SourceYard yard in SourceYards)
+            {
+                if (yard.DestYards.Count != 0)
+                {
+                    SaveYards.Add(yard);
+                }
+            }
+            string[] lines = new string[SaveYards.Count()];
+            int i = 0;
+            foreach (SourceYard sourceYard in SaveYards)
+            {
+                StringBuilder destyards = new StringBuilder();
+                foreach (Yard yard in sourceYard.DestYards)
+                {
+                    destyards.Append(yard.YardID);
+                    destyards.Append(", ");
+                }
+                lines[i] = sourceYard.YardID.ToString() + " = " + destyards;
+                i++;
+            }
+            return lines;
+        }
+
         private void SaveFile() // To Do
         {
 			// does the save file exist? If so, write the current data to file
@@ -184,8 +248,7 @@ namespace IM_Destinations_Creator
 
 			if (saveLocation != null)
 			{
-				// write to saveLocation
-				MessageBox.Show("Pretend I saved just now.");
+                WriteFile(Save(), saveLocation);
 			}
 			else
 			{
@@ -204,20 +267,22 @@ namespace IM_Destinations_Creator
 			{
 				Title = "Save As...",
 				InitialDirectory = initDir,
+                DefaultExtension = "imd"
 
 			};
-			if (!Directory.Exists(initDir))
+
+            fileDialog.Filters.Add(new CommonFileDialogFilter("IM Destination File", ".imd"));
+            fileDialog.Filters.Add(new CommonFileDialogFilter("Text File", ".txt"));
+
+            if (!Directory.Exists(initDir))
 			{
 				fileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 			}
 
-			
-
 			if (fileDialog.ShowDialog() == CommonFileDialogResult.Ok && !File.Exists(fileDialog.FileName))
 			{
-				// write to fileDialog.FileName
-				MessageBox.Show("Pretend I saved just now.");
 				saveLocation = fileDialog.FileName;
+                WriteFile(Save(), saveLocation);
 			}
 		}
 

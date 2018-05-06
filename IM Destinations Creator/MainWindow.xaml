@@ -30,14 +30,12 @@
                 <MenuItem Command="ApplicationCommands.Open"/>
                 <MenuItem Command="ApplicationCommands.Save"/>
                 <MenuItem Command="ApplicationCommands.SaveAs"/>
-                <MenuItem Header="Reload Yards..."/>
+                <MenuItem Header="Reload Yards..." Command="{Binding LoadYardsFileCommand}" />
             </MenuItem>
-			<MenuItem Header="{Binding BindingTestProperty}">
-				<MenuItem Header="Custom RelayCommand Test" Command="{Binding DisplayTestCommand}" />
-				<MenuItem Header="RelayCommand Test" Command="ApplicationCommands.Properties" />
-				<MenuItem Header="RoutedUICommand Test" Command="local:ViewModel.CustomNewCommand" />
-			</MenuItem>
-		</Menu>
+            <MenuItem Header="_Edit">
+                <MenuItem Header="Add New Yard..."/>
+            </MenuItem>
+        </Menu>
         <StackPanel Orientation="Horizontal">
             <DockPanel>
                 <Label Content="Source Yard" Margin="10,0,10,0" HorizontalContentAlignment="Center" DockPanel.Dock="Top" />
