@@ -42,7 +42,7 @@ namespace IM_Destinations_Creator
 
 			base.RegisterCommand(
 				ApplicationCommands.Save,
-				param => true,
+				param => unsavedChanges,
 				param => this.SaveFile());
 
 			base.RegisterCommand(
@@ -58,12 +58,14 @@ namespace IM_Destinations_Creator
 
             // lets initialise some data to use
             LoadYardsFile();
-
+            unsavedChanges = false;
         }
 
         // Fields
 
         private string saveLocation;
+
+        private bool unsavedChanges;
 
         private int selSourceYard;
 
@@ -194,6 +196,7 @@ namespace IM_Destinations_Creator
         private void AddThisYard(Yard yard)
         {
             SourceYards.Add(new SourceYard(yard.YardID, yard.YardName, new ObservableCollection<Yard>()));
+            unsavedChanges = true;
         }
 
         private void NewFile()
@@ -202,6 +205,7 @@ namespace IM_Destinations_Creator
             // overwrite with new default data
 
             saveLocation = null;
+            unsavedChanges = true;
             SourceYards = new ObservableCollection<SourceYard>();
             int i = 0;
             foreach (Yard yard in DefaultYards)
@@ -222,6 +226,11 @@ namespace IM_Destinations_Creator
             // unload all current data
             // read file
             // populate new data from file contents
+
+            if (unsavedChanges)
+            {
+                MessageBox.Show("There are unsaved changes. Do you wish to continue?", "Unsaved Changes", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            }
         }
 
         private void WriteFile(string[] lines, string path)
@@ -270,7 +279,8 @@ namespace IM_Destinations_Creator
 			if (saveLocation != null)
 			{
                 WriteFile(Save(), saveLocation);
-			}
+                unsavedChanges = false;
+            }
 			else
 			{
 				SaveAsFile();
@@ -300,11 +310,12 @@ namespace IM_Destinations_Creator
 				fileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 			}
 
-			if (fileDialog.ShowDialog() == CommonFileDialogResult.Ok && !File.Exists(fileDialog.FileName))
+			if (fileDialog.ShowDialog() == CommonFileDialogResult.Ok)
 			{
 				saveLocation = fileDialog.FileName;
                 WriteFile(Save(), saveLocation);
-			}
+                unsavedChanges = false;
+            }
 		}
 
         private void IsValidDest(IList<Yard> selYards)
@@ -315,6 +326,7 @@ namespace IM_Destinations_Creator
                 SelSourceYard.DestYards.Add(yard);
             }
             NotifyPropertyChanged("PossibleDestYards");
+            unsavedChanges = true;
         }
 
         private void IsNotValidDest(IList<Yard> selYards)
@@ -325,6 +337,7 @@ namespace IM_Destinations_Creator
                 SelSourceYard.DestYards.Remove(yard);
             }
             NotifyPropertyChanged("PossibleDestYards");
+            unsavedChanges = true;
         }
 
         private void ToggleValidDest(IList<Yard> selYards) // To Do
@@ -342,6 +355,7 @@ namespace IM_Destinations_Creator
                     SelSourceYard.DestYards.Add(yard);
                 }
             }
+            unsavedChanges = true;
         }
     }
 }
