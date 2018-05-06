@@ -48,21 +48,18 @@
                 <ListBox Name="LBPossibleDestYards" MinWidth="220" Margin="10,0,10,10" ItemsSource="{Binding PossibleDestYards}" SelectionMode="Extended" ItemTemplate="{StaticResource YardListBoxTemplate}" />
             </DockPanel>
 			<DockPanel>
-				<Label VerticalContentAlignment="Center">
-					<DockPanel MinHeight="80" LastChildFill="False">
-						<Button Content="→" DockPanel.Dock="Top" MinHeight="35" MinWidth="35" Command="{Binding IsValidDestCommand}" CommandParameter="{Binding ElementName=LBPossibleDestYards, Path=SelectedItems}" FontSize="22"/>
-						<Button Content="←" DockPanel.Dock="Bottom" MinHeight="35" MinWidth="35" Command="{Binding IsNotValidDestCommand}" CommandParameter="{Binding ElementName=LBDestYards, Path=SelectedItems}" FontSize="22"/>
-					</DockPanel>
-					
-				</Label>
-				
-				
-			</DockPanel>
+                <Label VerticalContentAlignment="Center">
+                    <DockPanel MinHeight="80" LastChildFill="False">
+                        <Button Content="→" DockPanel.Dock="Top" MinHeight="35" MinWidth="35" Command="{Binding IsValidDestCommand}" CommandParameter="{Binding ElementName=LBPossibleDestYards, Path=SelectedItems}" FontSize="22"/>
+                        <Button Content="←" DockPanel.Dock="Bottom" MinHeight="35" MinWidth="35" Command="{Binding IsNotValidDestCommand}" CommandParameter="{Binding ElementName=LBDestYards, Path=SelectedItems}" FontSize="22"/>
+                    </DockPanel>
+                </Label>
+            </DockPanel>
 			<DockPanel>
                 <DockPanel DockPanel.Dock="Top" >
                     <Label Content="Destinations Set" Margin="10,0,10,0" HorizontalContentAlignment="Center" />
                 </DockPanel>
-                <ListBox Name="LBDestYards" MinWidth="220" Margin="10,0,10,10" ItemsSource="{Binding ActualDestYards}" SelectionMode="Extended" ItemTemplate="{StaticResource YardListBoxTemplate}" />
+                <ListBox Name="LBDestYards" MinWidth="220" Margin="10,0,10,10" ItemsSource="{Binding SelSourceYard.DestYards}" SelectionMode="Extended" ItemTemplate="{StaticResource YardListBoxTemplate}" />
             </DockPanel>
         </StackPanel>
     </DockPanel>

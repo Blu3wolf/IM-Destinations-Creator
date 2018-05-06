@@ -91,7 +91,7 @@ namespace IM_Destinations_Creator
                 {
                     selSourceYard = SourceYards.IndexOf(value);
                     NotifyPropertyChanged();
-                    MessageBox.Show("Selected Yard just changed");
+                    NotifyPropertyChanged("PossibleDestYards");
                 }
             }
         }
@@ -101,21 +101,16 @@ namespace IM_Destinations_Creator
             get
             {
                 ObservableCollection<Yard> yards = new ObservableCollection<Yard>(SourceYards);
-                if (ActualDestYards.Count == 0)
+                if (SelSourceYard.DestYards.Count == 0)
                 {
                     return yards;
                 }
-                foreach (Yard o in ActualDestYards)
+                foreach (Yard o in SelSourceYard.DestYards)
                 {
                     yards.Remove(o);
                 }
                 return yards;
             }
-        }
-
-        public ObservableCollection<Yard> ActualDestYards
-        {
-            get { return SelSourceYard.DestYards; }
         }
 
 		// Commands (Still actually Properties though)
@@ -233,6 +228,7 @@ namespace IM_Destinations_Creator
             {
                 SelSourceYard.DestYards.Add(yard);
             }
+            NotifyPropertyChanged("PossibleDestYards");
         }
 
         private void IsNotValidDest(IList<Yard> selYards)
@@ -242,6 +238,7 @@ namespace IM_Destinations_Creator
             {
                 SelSourceYard.DestYards.Remove(yard);
             }
+            NotifyPropertyChanged("PossibleDestYards");
         }
 
         private void ToggleValidDest(IList<Yard> selYards) // To Do
@@ -250,15 +247,13 @@ namespace IM_Destinations_Creator
             // this would be easy to implement if I just knew how to have one collection of selected yards rather than one collection per listbox
             foreach(Yard yard in selYards)
             {
-                if (ActualDestYards.Contains(yard))
+                if (SelSourceYard.DestYards.Contains(yard))
                 {
-                    ActualDestYards.Remove(yard);
-                    PossibleDestYards.Add(yard);
+                    SelSourceYard.DestYards.Remove(yard);
                 }
                 else
                 {
-                    ActualDestYards.Add(yard);
-                    PossibleDestYards.Remove(yard);
+                    SelSourceYard.DestYards.Add(yard);
                 }
             }
         }
