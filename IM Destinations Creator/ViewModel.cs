@@ -254,10 +254,23 @@ namespace IM_Destinations_Creator
             if (fileDialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
                 saveLocation = fileDialog.FileName;
-                
+
                 // unload current data
                 // read from file
                 // set up ViewModel properties from file data
+
+                using (StreamReader file = new StreamReader(saveLocation))
+                {
+                    string line;
+                    while ((line = file.ReadLine()) != null)
+                    {
+                        // handle each line depending on what the line is
+                        // for .imd saves, each line is one entry in the SourceYards list
+                        // the save doesnt necessarily contain all the information needed
+                        // yard names come from the loaded yards list instead of the save file
+                        Console.WriteLine(line);
+                    }
+                }
 
                 unsavedChanges = false;
             }
@@ -265,8 +278,7 @@ namespace IM_Destinations_Creator
 
         private void WriteFile(string[] lines, string path)
         {
-            using (System.IO.StreamWriter file =
-            new System.IO.StreamWriter(path))
+            using (StreamWriter file = new StreamWriter(path))
             {
                 foreach (string line in lines)
                 {
