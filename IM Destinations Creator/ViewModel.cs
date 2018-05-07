@@ -166,23 +166,73 @@ namespace IM_Destinations_Creator
         {
             // load the list of yards as used by FYM, from the FYM install
             // assume we are in the FYM root directory first, then if we are not display modal dialogue asking for the FYM root directory
-
-            string literal = "foo";
-            FYMZip.UnZipFiletoString(literal, ref literal);
-
-			// NOTE: This is not yet implemented
-			MessageBox.Show("Pretend I loaded all new yards data just now.");
-
-            DefaultYards = new List<Yard>()
+            string ypath = @"server1\FYMYards.zip";
+            if (!File.Exists(ypath))
             {
-                new Yard(1001, "Dolores ICTF, CA"),
-                new Yard(1280, "Jackson High Oak, MS"),
-                new Yard(1998, "Chicago 63rd St, IL"),
-                new Yard(1389, "Terminal Island, CA"),
-                new Yard(1385, "Rutherford, PA"),
-                new Yard(1911, "Morrisville, PA"),
-                new Yard(1372, "Houston Englewood, TX")
-            };
+                // display modal dialog asking for FYM root directory
+                string initDir = Directory.GetCurrentDirectory();
+
+                CommonOpenFileDialog fileDialog = new CommonOpenFileDialog()
+                {
+                    Title = "Open FYMYards.zip File",
+                    InitialDirectory = initDir,
+                    DefaultFileName = "FYMYards.zip"
+                };
+
+                fileDialog.Filters.Add(new CommonFileDialogFilter("Zipped File", ".zip"));
+
+                if (fileDialog.ShowDialog() == CommonFileDialogResult.Ok && Path.GetFileName(fileDialog.FileName) == "FYMYards.zip")
+                {
+                    ypath = fileDialog.FileName;
+                }
+            }
+
+            // path should now be valid
+
+            string yards = "foo";
+            FYMZip.UnZipFiletoString(ypath, ref yards);
+
+            // string yards should now be the contents of the FYMYards.zip file
+            // not sure how to handle that, so for now just write to file
+
+            // File.WriteAllText("fymyards.txt", yards);
+
+            // or instead we could try this
+
+            DefaultYards = new List<Yard>();
+
+            using(StringReader reader = new StringReader(yards))
+            {
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    // do something on a per line basis
+                    if (line.StartsWith("ID="))
+                    {
+                        try
+                        {
+                            int yardID = Convert.ToInt32(line.Substring(3, 4));
+                            int schar = line.IndexOf(":");
+                            int echar = line.IndexOf(":", schar + 1);
+                            string yardName = line.Substring(schar, echar - schar);
+                            Yard yard = new Yard(yardID, yardName);
+                            DefaultYards.Add(yard);
+                        }
+                        catch (FormatException)
+                        {
+                            MessageBox.Show("The FYMYards.zip file is poorly formed and could not be read: A yardID could not be read as a number.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        }
+                        catch (ArgumentOutOfRangeException)
+                        {
+                            MessageBox.Show("The FYMYards.zip file is poorly formed and could not be read: A yard entry does not contain a separator ':'", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        }
+                    }
+                }
+            }
+
+            string message = String.Format("Yards loaded from FYMYards.zip {0}There are {1} yards loaded.", Environment.NewLine, DefaultYards.Count());
+
+			MessageBox.Show(message, "Information", MessageBoxButton.OK, MessageBoxImage.Information);
 
             NewFile();
         }
