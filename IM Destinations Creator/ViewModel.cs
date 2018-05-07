@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using Microsoft.WindowsAPICodePack.Dialogs;
+using FYMFileZip;
 
 namespace IM_Destinations_Creator
 {
@@ -21,6 +22,9 @@ namespace IM_Destinations_Creator
 			DisplayTestCommand = new RelayCommand(o => DisplayTestMessage());
             NewFileCommand = new RelayCommand(obj => NewFile());
 			ToggleCommand = new RelayCommand(obj => ToggleValidDest((IList<Yard>)obj));
+            LoadYardsFileCommand = new RelayCommand(obj => LoadYardsFile());
+            AddYardCommand = new RelayCommand(o => AddYard());
+            AddThisYardCommand = new RelayCommand(obj => AddThisYard((Yard)obj));
 
             IsValidDestCommand = new RelayCommand(o => IsValidDest(CastToIList(o)), p => true);
             IsNotValidDestCommand = new RelayCommand(o => IsNotValidDest(CastToIList(o)), p => true);
@@ -39,7 +43,7 @@ namespace IM_Destinations_Creator
 
 			base.RegisterCommand(
 				ApplicationCommands.Save,
-				param => true,
+				param => unsavedChanges,
 				param => this.SaveFile());
 
 			base.RegisterCommand(
@@ -53,34 +57,37 @@ namespace IM_Destinations_Creator
 				param => this.NewFile());
 
 
-			// lets initialise some data to use
-			SourceYards = new ObservableCollection<SourceYard>
-			{
-				new SourceYard(1001, "Dolores ICTF, CA", new ObservableCollection<Yard>()),
-				new SourceYard(1280, "Jackson High Oak, MS", new ObservableCollection<Yard>()),
-				new SourceYard(1998, "Chicago 63rd St, IL", new ObservableCollection<Yard>()),
-				new SourceYard(1389, "Terminal Island, CA", new ObservableCollection<Yard>()),
-				new SourceYard(1385, "Rutherford, PA", new ObservableCollection<Yard>()),
-				new SourceYard(1911, "Morrisville, PA", new ObservableCollection<Yard>()),
-				new SourceYard(1372, "Houston Englewood, TX", new ObservableCollection<Yard>())
-			};
-
-			BindingTestProperty = "Test Text Here";
-            selSourceYard = 0;
-
+            // lets initialise some data to use
+            LoadYardsFile();
+            unsavedChanges = false;
         }
 
         // Fields
 
         private string saveLocation;
 
+        private bool unsavedChanges;
+
         private int selSourceYard;
+
+        private ObservableCollection<SourceYard> sourceYards;
+
+        private List<Yard> DefaultYards;
 
         // Properties
 
         public string BindingTestProperty { get; set; }
 
-        public ObservableCollection<SourceYard> SourceYards { get; }
+        public ObservableCollection<SourceYard> SourceYards
+        {
+            get { return sourceYards; }
+            private set
+            {
+                // still working on this part
+                sourceYards = value;
+                NotifyPropertyChanged();
+            }
+        }
 
         public SourceYard SelSourceYard // do I need this?
         {
@@ -101,6 +108,7 @@ namespace IM_Destinations_Creator
             get
             {
                 ObservableCollection<Yard> yards = new ObservableCollection<Yard>(SourceYards);
+                yards.Remove(SelSourceYard);
                 if (SelSourceYard.DestYards.Count == 0)
                 {
                     return yards;
@@ -122,6 +130,12 @@ namespace IM_Destinations_Creator
         public RelayCommand NewFileCommand { get; }
 
 		public RelayCommand DisplayTestCommand { get; }
+
+        public RelayCommand LoadYardsFileCommand { get; }
+
+        public RelayCommand AddYardCommand { get; }
+
+        public RelayCommand AddThisYardCommand { get; }
 
 		public RelayCommand ToggleCommand { get; }
 
@@ -150,31 +164,209 @@ namespace IM_Destinations_Creator
 
         private void LoadYardsFile() // To Do
         {
-			// load the list of yards as used by FYM, from the FYM install
-			// assume we are in the FYM root directory first, then if we are not display modal dialogue asking for the FYM root directory
+            // load the list of yards as used by FYM, from the FYM install
+            // assume we are in the FYM root directory first, then if we are not display modal dialogue asking for the FYM root directory
+            string ypath = @"server1\FYMYards.zip";
+            if (!File.Exists(ypath))
+            {
+                // display modal dialog asking for FYM root directory
+                string initDir = Directory.GetCurrentDirectory();
 
-			// NOTE: This is not yet implemented
-			MessageBox.Show("Pretend I loaded all new yards data just now.");
+                CommonOpenFileDialog fileDialog = new CommonOpenFileDialog()
+                {
+                    Title = "Open FYMYards.zip File",
+                    InitialDirectory = initDir,
+                    DefaultFileName = "FYMYards.zip"
+                };
 
-		}
+                fileDialog.Filters.Add(new CommonFileDialogFilter("Zipped File", ".zip"));
 
-        private void NewFile() // To Do
+                if (fileDialog.ShowDialog() == CommonFileDialogResult.Ok && Path.GetFileName(fileDialog.FileName) == "FYMYards.zip")
+                {
+                    ypath = fileDialog.FileName;
+                }
+            }
+
+            // path should now be valid
+
+            string yards = "foo";
+            FYMZip.UnZipFiletoString(ypath, ref yards);
+
+            // string yards should now be the contents of the FYMYards.zip file
+            // not sure how to handle that, so for now just write to file
+
+            // File.WriteAllText("fymyards.txt", yards);
+
+            // or instead we could try this
+
+            DefaultYards = new List<Yard>();
+
+            using(StringReader reader = new StringReader(yards))
+            {
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    // do something on a per line basis
+                    if (line.StartsWith("ID="))
+                    {
+                        try
+                        {
+                            int yardID = Convert.ToInt32(line.Substring(3, 4));
+                            int schar = line.IndexOf(":");
+                            int echar = line.IndexOf(":", schar + 1);
+                            string yardName = line.Substring(schar, echar - schar);
+                            Yard yard = new Yard(yardID, yardName);
+                            DefaultYards.Add(yard);
+                        }
+                        catch (FormatException)
+                        {
+                            MessageBox.Show("The FYMYards.zip file is poorly formed and could not be read: A yardID could not be read as a number.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        }
+                        catch (ArgumentOutOfRangeException)
+                        {
+                            MessageBox.Show("The FYMYards.zip file is poorly formed and could not be read: A yard entry does not contain a separator ':'", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        }
+                    }
+                }
+            }
+
+            string message = String.Format("Yards loaded from FYMYards.zip {0}There are {1} yards loaded.", Environment.NewLine, DefaultYards.Count());
+
+			MessageBox.Show(message, "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+
+            NewFile();
+        }
+
+        private void AddYard()
         {
-			// unload all current data
-			// overwrite with new default data
+            AddNewYard nywindow = new AddNewYard();
+            nywindow.ShowDialog();
+            if (nywindow.NewYard != null)
+            {
+                AddThisYard(nywindow.NewYard);
+            }
+        }
 
-			// current default data is a hardcoded short list of yards
-			// test behavior:
-			DisplayTestMessage();
+        private void AddThisYard(Yard yard)
+        {
+            SourceYards.Add(new SourceYard(yard.YardID, yard.YardName, new ObservableCollection<Yard>()));
+            unsavedChanges = true;
+        }
+
+        private void NewFile()
+        {
+            // unload all current data
+            // overwrite with new default data
+
+            saveLocation = null;
+            unsavedChanges = true;
+            SourceYards = new ObservableCollection<SourceYard>();
+            int i = 0;
+            foreach (Yard yard in DefaultYards)
+            {
+                SourceYard syard = new SourceYard(yard.YardID, yard.YardName, new ObservableCollection<Yard>());
+                SourceYards.Add(syard);
+                // cycling through selected yard updates the display
+                SelSourceYard = SourceYards[i];
+                i++;
+            }
+            SelSourceYard = SourceYards[0];
         }
 
         private void OpenFile() // To Do
         {
             // prompt a save if there is open unsaved data already
+
+            if (unsavedChanges)
+            {
+                var result = MessageBox.Show("There are unsaved changes. Do you wish to continue?", "Unsaved Changes", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (result == MessageBoxResult.No)
+                {
+                    return;
+                }
+            }
+
             // display modal dialogue asking for the file to load
-            // unload all current data
-            // read file
-            // populate new data from file contents
+            
+            string initDir = Path.GetDirectoryName(saveLocation);
+
+            CommonOpenFileDialog fileDialog = new CommonOpenFileDialog()
+            {
+                Title = "Open File",
+                InitialDirectory = initDir,
+                DefaultExtension = "imd"
+            };
+
+            fileDialog.Filters.Add(new CommonFileDialogFilter("IM Destination File", ".imd"));
+            fileDialog.Filters.Add(new CommonFileDialogFilter("Text File", ".txt"));
+
+            if (!Directory.Exists(initDir))
+            {
+                fileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            }
+
+            if (fileDialog.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                saveLocation = fileDialog.FileName;
+
+                // unload current data
+                // read from file
+                // set up ViewModel properties from file data
+
+                using (StreamReader file = new StreamReader(saveLocation))
+                {
+                    string line;
+                    while ((line = file.ReadLine()) != null)
+                    {
+                        // handle each line depending on what the line is
+                        // for .imd saves, each line is one entry in the SourceYards list
+                        // the save doesnt necessarily contain all the information needed
+                        // yard names come from the loaded yards list instead of the save file
+                        Console.WriteLine(line);
+                    }
+                }
+
+                unsavedChanges = false;
+            }
+        }
+
+
+
+        private void WriteFile(string[] lines, string path)
+        {
+            using (StreamWriter file = new StreamWriter(path))
+            {
+                foreach (string line in lines)
+                {
+                    file.WriteLine(line);
+                }
+            }
+        }
+
+        private string[] Save()
+        {
+            List<SourceYard> SaveYards = new List<SourceYard>();
+            foreach (SourceYard yard in SourceYards)
+            {
+                if (yard.DestYards.Count != 0)
+                {
+                    SaveYards.Add(yard);
+                }
+            }
+            string[] lines = new string[SaveYards.Count()];
+            int i = 0;
+            foreach (SourceYard sourceYard in SaveYards)
+            {
+                StringBuilder destyards = new StringBuilder();
+                foreach (Yard yard in sourceYard.DestYards)
+                {
+                    destyards.Append(yard.YardID);
+                    destyards.Append(", ");
+                }
+                lines[i] = sourceYard.YardID.ToString() + " = " + destyards;
+                i++;
+            }
+            return lines;
         }
 
         private void SaveFile() // To Do
@@ -184,9 +376,9 @@ namespace IM_Destinations_Creator
 
 			if (saveLocation != null)
 			{
-				// write to saveLocation
-				MessageBox.Show("Pretend I saved just now.");
-			}
+                WriteFile(Save(), saveLocation);
+                unsavedChanges = false;
+            }
 			else
 			{
 				SaveAsFile();
@@ -204,21 +396,24 @@ namespace IM_Destinations_Creator
 			{
 				Title = "Save As...",
 				InitialDirectory = initDir,
+                DefaultExtension = "imd"
 
 			};
-			if (!Directory.Exists(initDir))
+
+            fileDialog.Filters.Add(new CommonFileDialogFilter("IM Destination File", ".imd"));
+            fileDialog.Filters.Add(new CommonFileDialogFilter("Text File", ".txt"));
+
+            if (!Directory.Exists(initDir))
 			{
 				fileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 			}
 
-			
-
-			if (fileDialog.ShowDialog() == CommonFileDialogResult.Ok && !File.Exists(fileDialog.FileName))
+			if (fileDialog.ShowDialog() == CommonFileDialogResult.Ok)
 			{
-				// write to fileDialog.FileName
-				MessageBox.Show("Pretend I saved just now.");
 				saveLocation = fileDialog.FileName;
-			}
+                WriteFile(Save(), saveLocation);
+                unsavedChanges = false;
+            }
 		}
 
         private void IsValidDest(IList<Yard> selYards)
@@ -229,6 +424,7 @@ namespace IM_Destinations_Creator
                 SelSourceYard.DestYards.Add(yard);
             }
             NotifyPropertyChanged("PossibleDestYards");
+            unsavedChanges = true;
         }
 
         private void IsNotValidDest(IList<Yard> selYards)
@@ -239,6 +435,7 @@ namespace IM_Destinations_Creator
                 SelSourceYard.DestYards.Remove(yard);
             }
             NotifyPropertyChanged("PossibleDestYards");
+            unsavedChanges = true;
         }
 
         private void ToggleValidDest(IList<Yard> selYards) // To Do
@@ -256,6 +453,7 @@ namespace IM_Destinations_Creator
                     SelSourceYard.DestYards.Add(yard);
                 }
             }
+            unsavedChanges = true;
         }
     }
 }
