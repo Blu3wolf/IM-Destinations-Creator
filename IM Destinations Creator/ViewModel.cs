@@ -58,7 +58,9 @@ namespace IM_Destinations_Creator
 
 
             // lets initialise some data to use
+            DefaultYards = new List<Yard>() { new Yard(1000, "Unassigned")};
             LoadYardsFile();
+            NewFile();
             unsavedChanges = false;
         }
 
@@ -365,6 +367,7 @@ namespace IM_Destinations_Creator
                         Console.WriteLine(message);
 
                         SourceYard NewYard = new SourceYard(yardID, yardName, destYards);
+                        
                         if (SourceYards.Contains(NewYard))
                         {
                             MessageBox.Show("SourceYards contains NewYard");

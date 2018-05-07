@@ -28,14 +28,9 @@ namespace IM_Destinations_Creator
             {
                 return false;
             }
-            if (this.YardID == other.YardID)
             {
-                return true;
             }
-            else
-            {
-                return false;
-            }
+            return this.YardID == other.YardID;
         }
     }
 
