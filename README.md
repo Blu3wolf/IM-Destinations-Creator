@@ -3,7 +3,8 @@ IM-Destinations-Creator is a tool for building and editing IM Destinations files
 
 ## Building IM-Destinations-Creator
 You will need WindowsAPICodePack, available on NuGet. IM-Destinations-Creator is built on VS2017 Community Edition. You will also need FYMFileZip.dll which is included with FYM. 
-Alternatively, you can obtain a compiled executable from the Releases page here.
+
+Alternatively, you can obtain a compiled executable from the Releases page here. FYMFileZip.dll is not included, but can be downloaded with FYM from the above website.
 
 ## Setup and Usage 
 Place IMDCreator.exe in the same folder as FYManager.exe. On running, IMDCreator will look for existing yards in the FYMYards.zip file. If it cannot find the file it will ask for another file. If no FYMYards.zip file is provided, the editor will not have any predefined yard names. 
