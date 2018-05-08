@@ -24,7 +24,7 @@ namespace IM_Destinations_Creator
 			ToggleCommand = new RelayCommand(obj => ToggleValidDest((IList<Yard>)obj));
             LoadYardsFileCommand = new RelayCommand(obj => LoadYardsFile());
             AddYardCommand = new RelayCommand(o => AddYard());
-            AddThisYardCommand = new RelayCommand(obj => AddThisYard((Yard)obj));
+            AddThisYardCommand = new RelayCommand(obj => AddYard((Yard)obj));
 
             IsValidDestCommand = new RelayCommand(o => IsValidDest(CastToIList(o)), p => true);
             IsNotValidDestCommand = new RelayCommand(o => IsNotValidDest(CastToIList(o)), p => true);
@@ -242,14 +242,21 @@ namespace IM_Destinations_Creator
             nywindow.ShowDialog();
             if (nywindow.NewYard != null)
             {
-                AddThisYard(nywindow.NewYard);
+                AddYard(nywindow.NewYard);
             }
         }
 
-        private void AddThisYard(Yard yard)
+        private void AddYard(Yard yard)
         {
-            SourceYards.Add(new SourceYard(yard.YardID, yard.YardName, new ObservableCollection<Yard>()));
-            unsavedChanges = true;
+            if (sourceYards.Contains(yard))
+            {
+                MessageBox.Show("This yardID is already in use: " + yard.YardID, "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            else
+            {
+                SourceYards.Add(new SourceYard(yard.YardID, yard.YardName, new ObservableCollection<Yard>()));
+                unsavedChanges = true;
+            }
         }
 
         private void NewFile()
