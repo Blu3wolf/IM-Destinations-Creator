@@ -24,7 +24,7 @@ namespace IM_Destinations_Creator
 			ToggleCommand = new RelayCommand(obj => ToggleValidDest((IList<Yard>)obj));
             LoadYardsFileCommand = new RelayCommand(obj => LoadYardsFile());
             AddYardCommand = new RelayCommand(o => AddYard());
-            AddThisYardCommand = new RelayCommand(obj => AddThisYard((Yard)obj));
+            AddThisYardCommand = new RelayCommand(obj => AddYard((Yard)obj));
 
             IsValidDestCommand = new RelayCommand(o => IsValidDest(CastToIList(o)), p => true);
             IsNotValidDestCommand = new RelayCommand(o => IsNotValidDest(CastToIList(o)), p => true);
@@ -58,7 +58,9 @@ namespace IM_Destinations_Creator
 
 
             // lets initialise some data to use
+            DefaultYards = new List<Yard>() { new Yard(1000, "Unassigned")};
             LoadYardsFile();
+            NewFile();
             unsavedChanges = false;
         }
 
@@ -167,6 +169,7 @@ namespace IM_Destinations_Creator
             // load the list of yards as used by FYM, from the FYM install
             // assume we are in the FYM root directory first, then if we are not display modal dialogue asking for the FYM root directory
             string ypath = @"server1\FYMYards.zip";
+
             if (!File.Exists(ypath))
             {
                 // display modal dialog asking for FYM root directory
@@ -181,27 +184,23 @@ namespace IM_Destinations_Creator
 
                 fileDialog.Filters.Add(new CommonFileDialogFilter("Zipped File", ".zip"));
 
-                if (fileDialog.ShowDialog() == CommonFileDialogResult.Ok && Path.GetFileName(fileDialog.FileName) == "FYMYards.zip")
+                if (!(fileDialog.ShowDialog() == CommonFileDialogResult.Ok && Path.GetFileName(fileDialog.FileName) == "FYMYards.zip" && File.Exists(fileDialog.FileName)))
                 {
-                    ypath = fileDialog.FileName;
+                    return;
                 }
+                ypath = fileDialog.FileName;
             }
 
-            // path should now be valid
+            // path should now be valid, if the dialogresult was .Ok
 
             string yards = "foo";
             FYMZip.UnZipFiletoString(ypath, ref yards);
 
             // string yards should now be the contents of the FYMYards.zip file
-            // not sure how to handle that, so for now just write to file
-
-            // File.WriteAllText("fymyards.txt", yards);
-
-            // or instead we could try this
-
+            
             DefaultYards = new List<Yard>();
 
-            using(StringReader reader = new StringReader(yards))
+            using (StringReader reader = new StringReader(yards))
             {
                 string line;
                 while ((line = reader.ReadLine()) != null)
@@ -212,8 +211,8 @@ namespace IM_Destinations_Creator
                         try
                         {
                             int yardID = Convert.ToInt32(line.Substring(3, 4));
-                            int schar = line.IndexOf(":");
-                            int echar = line.IndexOf(":", schar + 1);
+                            int schar = line.IndexOf(":") + 1;
+                            int echar = line.IndexOf(":", schar);
                             string yardName = line.Substring(schar, echar - schar);
                             Yard yard = new Yard(yardID, yardName);
                             DefaultYards.Add(yard);
@@ -243,14 +242,21 @@ namespace IM_Destinations_Creator
             nywindow.ShowDialog();
             if (nywindow.NewYard != null)
             {
-                AddThisYard(nywindow.NewYard);
+                AddYard(nywindow.NewYard);
             }
         }
 
-        private void AddThisYard(Yard yard)
+        private void AddYard(Yard yard)
         {
-            SourceYards.Add(new SourceYard(yard.YardID, yard.YardName, new ObservableCollection<Yard>()));
-            unsavedChanges = true;
+            if (sourceYards.Contains(yard))
+            {
+                MessageBox.Show("This yardID is already in use: " + yard.YardID, "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            else
+            {
+                SourceYards.Add(new SourceYard(yard.YardID, yard.YardName, new ObservableCollection<Yard>()));
+                unsavedChanges = true;
+            }
         }
 
         private void NewFile()
@@ -307,6 +313,7 @@ namespace IM_Destinations_Creator
 
             if (fileDialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
+                NewFile();
                 saveLocation = fileDialog.FileName;
 
                 // unload current data
@@ -322,7 +329,58 @@ namespace IM_Destinations_Creator
                         // for .imd saves, each line is one entry in the SourceYards list
                         // the save doesnt necessarily contain all the information needed
                         // yard names come from the loaded yards list instead of the save file
-                        Console.WriteLine(line);
+
+                        int yardID;
+                        string yardName;
+
+                        // figure out the yardID first
+                        try
+                        {
+                            yardID = Convert.ToInt32(line.Substring(0, 4));
+                            yardName = GetYardName(yardID);
+
+                        }
+                        catch (FormatException)
+                        {
+                            MessageBox.Show("The selected file has invalid characters: Could not convert yard ID to a number", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                            throw;
+                        }
+
+                        // so we now have hopefully got a valid yardID for the source yard, and a name
+                        // next we need to iterate over the list of all destination yards for this source yard, and add those
+
+                        ObservableCollection<Yard> destYards = new ObservableCollection<Yard>();
+                        string deststring = line.Substring(7);
+                        string[] separators = new string[] { ", " };
+                        string[] yardIDs = deststring.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+
+                        foreach (string yardIDstring in yardIDs)
+                        {
+                            try
+                            {
+                                int DestyardID = Convert.ToInt32(yardIDstring);
+                                string DestyardName = GetYardName(DestyardID);
+                                destYards.Add(new Yard(DestyardID, DestyardName));
+                            }
+                            catch (FormatException)
+                            {
+                                MessageBox.Show("The selected file has invalid characters: Could not convert yard ID to a number", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                                throw;
+                            }
+                        }
+
+                        // now we check to see if the SourceYard already exists (it probably does) and add the destYards to it
+
+                        SourceYard NewYard = new SourceYard(yardID, yardName, destYards);
+                        if (SourceYards.Contains(NewYard))
+                        {
+                            int i = SourceYards.IndexOf(NewYard);
+                            SourceYards[i].DestYards = destYards;
+                        }
+                        else
+                        {
+                            SourceYards.Add(new SourceYard(yardID, yardName, destYards));
+                        }
                     }
                 }
 
@@ -330,7 +388,19 @@ namespace IM_Destinations_Creator
             }
         }
 
-
+        public string GetYardName(int YardID)
+        {
+            Yard placeholder = new Yard(YardID, null);
+            if (DefaultYards.Contains(placeholder))
+            {
+                int DefYardIndex = DefaultYards.IndexOf(placeholder);
+                return DefaultYards[DefYardIndex].YardName;
+            }
+            else
+            {
+                return null;
+            }
+        }
 
         private void WriteFile(string[] lines, string path)
         {
