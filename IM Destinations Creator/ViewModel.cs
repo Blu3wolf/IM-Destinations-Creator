@@ -363,20 +363,15 @@ namespace IM_Destinations_Creator
                         }
 
                         // now we check to see if the SourceYard already exists (it probably does) and add the destYards to it
-                        string message = String.Format("Now checking for {0}: {1}", yardID, yardName);
-                        Console.WriteLine(message);
 
                         SourceYard NewYard = new SourceYard(yardID, yardName, destYards);
-                        
                         if (SourceYards.Contains(NewYard))
                         {
-                            MessageBox.Show("SourceYards contains NewYard");
                             int i = SourceYards.IndexOf(NewYard);
                             SourceYards[i].DestYards = destYards;
                         }
                         else
                         {
-                            MessageBox.Show("SourceYards doesnt contain NewYard");
                             SourceYards.Add(new SourceYard(yardID, yardName, destYards));
                         }
                     }
